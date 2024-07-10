@@ -21,6 +21,12 @@ let isPlaying = false;
 let gofromstart = true;
 let timestep = 0;
 
+let showsolution = false;
+
+function toggleSolution(option) {
+    showsolution = option;
+}
+
 
 function setSpeed(option) {
     switch (option) {
@@ -88,7 +94,7 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
                     initialGrid[y][x] = lines[y][x] === '■' ? 1 : 0;
                 }
             }
-            drawGrid(drawCtx, initialGrid);
+            drawGrid(drawCtx, initialGrid, null);
         };
         reader.readAsText(file);
     }
@@ -131,18 +137,29 @@ function drawOnCanvas(event) {
     if (!toggledCells[y][x]) {
         initialGrid[y][x] = initialGrid[y][x] === 0 ? 1 : 0;
         toggledCells[y][x] = true; // Mark the cell as toggled
-        drawGrid(drawCtx, initialGrid);
+        drawGrid(drawCtx, initialGrid, null);
     }
 }
 
 
 
-function drawGrid(ctx, grid) {
+function drawGrid(ctx, grid, darkGrid) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = 'black';
     for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
             if (grid[y][x] === 1) {
                 ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+    if (darkGrid !== null && showsolution) {
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                if (darkGrid[y][x] === 1) {
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(x * cellSize + 4, y * cellSize + 4, 4, 4);
+                }
             }
         }
     }
@@ -195,12 +212,12 @@ function updateGridMod(grid, darkGrid) {
             if (grid[y][x] === 1 && (neighbors == 8)) {
                 darkGrid[y][x] = 1;
                 grid[y][x] = 0;
-            } else if (grid[y][x] === 1 && (neighbors < 2 || neighbors > 3)) {
-                grid[y][x] = 0;
-            }
-            if (grid[y][x] === 1 && (darkGrid[y][x] === 1)) {
+            } else if (grid[y][x] === 1 && (darkGrid[y][x] === 1)) {
                 grid[y][x] = 0;
                 darkGrid[y][x] = 0;
+            }
+            if (grid[y][x] === 1 && (neighbors < 2 || neighbors > 3)) {
+                grid[y][x] = 0;
             } else if (grid[y][x] === 0 && neighbors === 3) {
                 grid[y][x] = 1;
             }
@@ -238,8 +255,8 @@ function restartSimulation() {
     darkGrid = create2DArray(rows, cols);
     
     history = new Array(MAX_HISTORY).fill(null);
-    drawGrid(gameCtx, grid);
-    drawGrid(modifiedCtx, modifiedGrid);
+    drawGrid(gameCtx, grid, null);
+    drawGrid(modifiedCtx, modifiedGrid, darkGrid);
     drawDifference();
 
     timestep = 0;
@@ -251,8 +268,8 @@ function stepBack() {
     if (timestep > 0) {
         timestep--;
         [grid, modifiedGrid, darkGrid] = history[timestep];
-        drawGrid(gameCtx, grid);
-        drawGrid(modifiedCtx, modifiedGrid);
+        drawGrid(gameCtx, grid, null);
+        drawGrid(modifiedCtx, modifiedGrid, darkGrid);
         drawDifference();
         document.getElementById('timestepCounter').textContent = `Timesteps: ${timestep}`;
     }
@@ -274,8 +291,8 @@ function gameLoop() {
     if (timestep < MAX_HISTORY) {
 
         timestep++;
-        drawGrid(gameCtx, grid);
-        drawGrid(modifiedCtx, modifiedGrid);
+        drawGrid(gameCtx, grid, null);
+        drawGrid(modifiedCtx, modifiedGrid, darkGrid);
         drawDifference();
         grid = updateGrid(grid);
         [modifiedGrid, darkGrid] = updateGridMod(modifiedGrid, darkGrid);
