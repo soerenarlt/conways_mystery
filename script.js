@@ -215,8 +215,7 @@ function updateGridMod(grid, darkGrid) {
             } else if (grid[y][x] === 1 && (darkGrid[y][x] === 1)) {
                 grid[y][x] = 0;
                 darkGrid[y][x] = 0;
-            }
-            if (grid[y][x] === 1 && (neighbors < 2 || neighbors > 3)) {
+            } else if (grid[y][x] === 1 && (neighbors < 2 || neighbors > 3)) {
                 grid[y][x] = 0;
             } else if (grid[y][x] === 0 && neighbors === 3) {
                 grid[y][x] = 1;
